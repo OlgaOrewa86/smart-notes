@@ -3,11 +3,13 @@ import { Link, useNavigate, useParams } from "react-router";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
 import { ArrowLeftIcon, LoaderIcon, Trash2Icon } from "lucide-react";
+import ConfirmModal from "../components/ConfirmModal";
 
 const NoteDetailPage = () => {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,8 +32,6 @@ const NoteDetailPage = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-
     try {
       await api.delete(`/notes/${id}`);
       toast.success("Note deleted");
@@ -44,7 +44,7 @@ const NoteDetailPage = () => {
 
   const handleSave = async () => {
     if (!note.title.trim() || !note.content.trim()) {
-      toast.error("Please add a title or content");
+      toast.error("Title and content are required");
       return;
     }
 
@@ -70,6 +70,23 @@ const NoteDetailPage = () => {
     );
   }
 
+  if (!note) {
+    return (
+      <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center text-center px-4">
+        <h2 className="text-2xl font-semibold text-base-content mb-2">
+          Note not found
+        </h2>
+        <p className="text-base-content/70 mb-6 max-w-md">
+          The note you're looking for may have been deleted or the link is
+          incorrect.
+        </p>
+        <Link to="/" className="btn btn-primary">
+          Go Back
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-base-200">
       <div className="container mx-auto px-4 py-8">
@@ -80,15 +97,22 @@ const NoteDetailPage = () => {
               Back to Notes
             </Link>
             <button
-              onClick={handleDelete}
+              onClick={() => setShowConfirm(true)}
               className="btn btn-error btn-outline"
             >
               <Trash2Icon className="h-5 w-5" />
               Delete Note
             </button>
           </div>
+          <ConfirmModal
+            open={showConfirm}
+            title="Delete Note?"
+            message="This action cannot be undone."
+            onConfirm={handleDelete}
+            onCancel={() => setShowConfirm(false)}
+          />
 
-          <div className="card bg-base-100">
+          <div className="card bg-base-100 animate-fade-in">
             <div className="card-body">
               <div className="form-control mb-4">
                 <label className="label">
@@ -120,7 +144,9 @@ const NoteDetailPage = () => {
               <div className="card-actions justify-end">
                 <button
                   className="btn btn-primary"
-                  disabled={saving}
+                  disabled={
+                    saving || !note.title.trim() || !note.content.trim()
+                  }
                   onClick={handleSave}
                 >
                   {saving ? "Saving..." : "Save Changes"}
