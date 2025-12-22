@@ -13,7 +13,7 @@ const CreatePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      toast.error("All fields are required");
+      toast.error("Title and content are required");
       return;
     }
     setLoading(true);
@@ -26,7 +26,7 @@ const CreatePage = () => {
       navigate("/");
     } catch (error) {
       console.log("Error creating note", error);
-      if (error.response.status === 429) {
+      if (error.response?.status === 429) {
         toast.error("Slow down! You're creating notes too fast", {
           duration: 4000,
           icon: <SkullIcon className="w-6 h-6 text-gray-700" />,
@@ -47,7 +47,7 @@ const CreatePage = () => {
             <ArrowLeftIcon className="size-5" />
             Back to Notes
           </Link>
-          <div className="card bg-base-100">
+          <div className="card bg-base-100 animate-fade-in">
             <div className="card-body">
               <h2 className="card-title text-2xl mb-4">Create New Note</h2>
               <form onSubmit={handleSubmit}>
@@ -78,7 +78,7 @@ const CreatePage = () => {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={loading}
+                    disabled={loading || !title.trim() || !content.trim()}
                   >
                     {loading ? "Creating..." : "Create Note"}
                   </button>
